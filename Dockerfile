@@ -14,11 +14,11 @@ RUN pip install uvicorn 'httpx>=0.28.1' 'mcp>=1.1.2'
 # Copy the rest of the application code
 COPY src/ /app/src/
 
-# Set environment variables (replace YOUR_API_KEY with actual key)
-ENV ALPHA_VANTAGE_API_KEY YOUR_API_KEY
+# Set environment variables
+ENV ALPHA_VANTAGE_API_KEY=${ALPHA_VANTAGE_API_KEY}
 
 # Expose the port that the app runs on
 EXPOSE 8000
 
 # Run the application
-CMD ["uvicorn", "src.alpha_vantage_mcp.server:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["python", "-m", "src.alpha_vantage_mcp.server"]

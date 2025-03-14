@@ -8,11 +8,10 @@ import mcp.server.stdio
 import os
 
 ALPHA_VANTAGE_BASE = "https://www.alphavantage.co/query"
-API_KEY = os.getenv('ALPHA_VANTAGE_API_KEY') ## Replace with your Alpha Vantage API key for local development
+API_KEY = os.getenv('ALPHA_VANTAGE_API_KEY')
 
-## Comment-out below two lines for local development 
-# if not API_KEY:
-#     raise ValueError("Missing ALPHA_VANTAGE_API_KEY environment variable")
+if not API_KEY:
+    raise ValueError("Missing ALPHA_VANTAGE_API_KEY environment variable")
 
 server = Server("alpha_vantage_finance")
 
@@ -159,23 +158,23 @@ async def make_alpha_request(client: httpx.AsyncClient, function: str, symbol: s
             params=params,
             timeout=30.0
         )
-        
+
         # Check for specific error responses
         if response.status_code == 429:
             return f"Rate limit exceeded. Error details: {response.text}"
         elif response.status_code == 403:
             return f"API key invalid or expired. Error details: {response.text}"
-        
+
         response.raise_for_status()
-        
+
         data = response.json()
-        
+
         # Check for Alpha Vantage specific error messages
         if "Error Message" in data:
             return f"Alpha Vantage API error: {data['Error Message']}"
         if "Note" in data and "API call frequency" in data["Note"]:
             return f"Rate limit warning: {data['Note']}"
-            
+
         return data
     except httpx.TimeoutException:
         return "Request timed out after 30 seconds. The Alpha Vantage API may be experiencing delays."
@@ -192,7 +191,7 @@ def format_quote(quote_data: dict) -> str:
         global_quote = quote_data.get("Global Quote", {})
         if not global_quote:
             return "No quote data available in the response"
-            
+
         return (
             f"Price: ${global_quote.get('05. price', 'N/A')}\n"
             f"Change: ${global_quote.get('09. change', 'N/A')} "
@@ -210,7 +209,7 @@ def format_company_info(overview_data: dict) -> str:
     try:
         if not overview_data:
             return "No company information available in the response"
-            
+
         return (
             f"Name: {overview_data.get('Name', 'N/A')}\n"
             f"Sector: {overview_data.get('Sector', 'N/A')}\n"
@@ -230,7 +229,7 @@ def format_crypto_rate(crypto_data: dict) -> str:
         realtime_data = crypto_data.get("Realtime Currency Exchange Rate", {})
         if not realtime_data:
             return "No exchange rate data available in the response"
-            
+
         return (
             f"From: {realtime_data.get('2. From_Currency Name', 'N/A')} ({realtime_data.get('1. From_Currency Code', 'N/A')})\n"
             f"To: {realtime_data.get('4. To_Currency Name', 'N/A')} ({realtime_data.get('3. To_Currency Code', 'N/A')})\n"
@@ -250,17 +249,17 @@ def format_time_series(time_series_data: dict) -> str:
         time_series = time_series_data.get("Time Series (Daily)", {})
         if not time_series:
             return "No time series data available in the response"
-        
+
         # Get metadata
         metadata = time_series_data.get("Meta Data", {})
         symbol = metadata.get("2. Symbol", "Unknown")
         last_refreshed = metadata.get("3. Last Refreshed", "Unknown")
-        
+
         # Format the most recent 5 days of data
         formatted_data = [
             f"Time Series Data for {symbol} (Last Refreshed: {last_refreshed})\n\n"
         ]
-        
+
         for date, values in list(time_series.items())[:5]:
             formatted_data.append(
                 f"Date: {date}\n"
@@ -271,28 +270,28 @@ def format_time_series(time_series_data: dict) -> str:
                 f"Volume: {values.get('5. volume', 'N/A')}\n"
                 "---\n"
             )
-        
+
         return "\n".join(formatted_data)
     except Exception as e:
         return f"Error formatting time series data: {str(e)}"
-    
+
 def format_historical_options(options_data: dict, limit: int = 10, sort_by: str = "strike", sort_order: str = "asc") -> str:
     """Format historical options chain data into a concise string with sorting."""
     try:
         if "Error Message" in options_data:
             return f"Error: {options_data['Error Message']}"
-            
+
         options_chain = options_data.get("data", [])
-        
+
         if not options_chain:
             return "No options data available in the response"
-            
+
         formatted = [
             f"Historical Options Data:\n",
             f"Status: {options_data.get('message', 'N/A')}\n",
             f"Sorted by: {sort_by} ({sort_order})\n\n"
         ]
-        
+
         # Convert string values to float for numeric sorting
         def get_sort_key(contract):
             value = contract.get(sort_by, 0)
@@ -303,17 +302,17 @@ def format_historical_options(options_data: dict, limit: int = 10, sort_by: str 
                 return float(value)
             except (ValueError, TypeError):
                 return value
-        
+
         # Sort the options chain
         sorted_chain = sorted(
             options_chain,
             key=get_sort_key,
             reverse=(sort_order == "desc")
         )
-        
+
         # If limit is -1, show all contracts
         display_contracts = sorted_chain if limit == -1 else sorted_chain[:limit]
-        
+
         for contract in display_contracts:
             formatted.append(f"Contract Details:\n")
             formatted.append(f"Contract ID: {contract.get('contractID', 'N/A')}\n")
@@ -333,14 +332,14 @@ def format_historical_options(options_data: dict, limit: int = 10, sort_by: str 
             formatted.append(f"Vega: {contract.get('vega', 'N/A')}\n")
             formatted.append(f"Rho: {contract.get('rho', 'N/A')}\n")
             formatted.append("---\n")
-            
+
         if limit != -1 and len(sorted_chain) > limit:
             formatted.append(f"\n... and {len(sorted_chain) - limit} more contracts")
-            
+
         return "".join(formatted)
     except Exception as e:
         return f"Error formatting options data: {str(e)}"
-    
+
 @server.call_tool()
 async def handle_call_tool(
     name: str, arguments: dict | None
@@ -351,14 +350,14 @@ async def handle_call_tool(
     """
     if not arguments:
         return [types.TextContent(type="text", text="Missing arguments for the request")]
-    
+
     if name == "get-stock-quote":
         symbol = arguments.get("symbol")
         if not symbol:
             return [types.TextContent(type="text", text="Missing symbol parameter")]
 
         symbol = symbol.upper()
-        
+
         async with httpx.AsyncClient() as client:
             quote_data = await make_alpha_request(
                 client,
@@ -380,7 +379,7 @@ async def handle_call_tool(
             return [types.TextContent(type="text", text="Missing symbol parameter")]
 
         symbol = symbol.upper()
-        
+
         async with httpx.AsyncClient() as client:
             company_data = await make_alpha_request(
                 client,
@@ -395,7 +394,7 @@ async def handle_call_tool(
             info_text = f"Company information for {symbol}:\n\n{formatted_info}"
 
             return [types.TextContent(type="text", text=info_text)]
-            
+
     elif name == "get-crypto-exchange-rate":
         crypto_symbol = arguments.get("crypto_symbol")
         if not crypto_symbol:
@@ -404,7 +403,7 @@ async def handle_call_tool(
         market = arguments.get("market", "USD")
         crypto_symbol = crypto_symbol.upper()
         market = market.upper()
-        
+
         async with httpx.AsyncClient() as client:
             crypto_data = await make_alpha_request(
                 client,
@@ -423,7 +422,7 @@ async def handle_call_tool(
             rate_text = f"Cryptocurrency exchange rate for {crypto_symbol}/{market}:\n\n{formatted_rate}"
 
             return [types.TextContent(type="text", text=rate_text)]
-            
+
     elif name == "get-time-series":
         symbol = arguments.get("symbol")
         if not symbol:
@@ -431,7 +430,7 @@ async def handle_call_tool(
 
         symbol = symbol.upper()
         outputsize = arguments.get("outputsize", "compact")
-        
+
         async with httpx.AsyncClient() as client:
             time_series_data = await make_alpha_request(
                 client,
@@ -447,19 +446,19 @@ async def handle_call_tool(
             series_text = f"Time series data for {symbol}:\n\n{formatted_series}"
 
             return [types.TextContent(type="text", text=series_text)]
-        
+
     elif name == "get-historical-options":
         symbol = arguments.get("symbol")
         date = arguments.get("date")
         limit = arguments.get("limit", 10)
         sort_by = arguments.get("sort_by", "strike")
         sort_order = arguments.get("sort_order", "asc")
-        
+
         if not symbol:
             return [types.TextContent(type="text", text="Missing symbol parameter")]
 
         symbol = symbol.upper()
-        
+
         async with httpx.AsyncClient() as client:
             params = {
                 "function": "HISTORICAL_OPTIONS",
@@ -467,7 +466,7 @@ async def handle_call_tool(
             }
             if date:
                 params["date"] = date
-                
+
             options_data = await make_alpha_request(
                 client,
                 "HISTORICAL_OPTIONS",

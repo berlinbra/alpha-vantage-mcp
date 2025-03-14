@@ -5,7 +5,7 @@ A Model Context Protocol (MCP) server that provides real-time access to financia
 
 <a href="https://glama.ai/mcp/servers/0wues5td08"><img width="380" height="200" src="https://glama.ai/mcp/servers/0wues5td08/badge" alt="AlphaVantage-MCP MCP server" /></a>
 
-## Features
+# Features
 
 - Real-time stock quotes with price, volume, and change data
 - Detailed company information including sector, industry, and market cap
@@ -15,31 +15,45 @@ A Model Context Protocol (MCP) server that provides real-time access to financia
 
 ## Installation
 
-#### Claude Desktop
+### Using Claude Desktop
 
-- On MacOS: `~/Library/Application\ Support/Claude/claude_desktop_config.json`
-- On Windows: `%APPDATA%/Claude/claude_desktop_config.json`
+#### Installing via Docker
 
-<summary>Development/Unpublished Servers Configuration</summary>
+- Clone the repository and build a local image to be utilized by your Claude desktop client
 
-```json
-    "mcpServers": {
-        "alpha-vantage-mcp": {
-            "command": "uv",
-            "args": [
-            "--directory",
-            "/Users/{INSERT_USER}/YOUR/PATH/TO/alpha-vantage-mcp",
-            "run",
-            "alpha-vantage-mcp"
-            ],
-            "env": {
-                "ALPHA_VANTAGE_API_KEY": "<insert api key>"
-            }
-        }
-    }
+```sh
+cd alpha-vantage-mcp
+docker build -t mcp/alpha-vantage .
 ```
 
-### Installing via Smithery
+- Change your `claude_desktop_config.json` to match the following, replacing `REPLACE_API_KEY` with your actual key:
+
+ > `claude_desktop_config.json` path
+ >
+ > - On MacOS: `~/Library/Application\ Support/Claude/claude_desktop_config.json`
+ > - On Windows: `%APPDATA%/Claude/claude_desktop_config.json`
+
+```json
+{
+  "mcpServers": {
+    "alphavantage": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "-e",
+        "ALPHA_VANTAGE_API_KEY",
+        "mcp/alpha-vantage"
+      ],
+      "env": {
+        "ALPHA_VANTAGE_API_KEY": "REPLACE_API_KEY"
+      }
+    }
+  }
+}
+```
+
+#### Installing via Smithery
 
 To install Alpha Vantage MCP Server for Claude Desktop automatically via [Smithery](https://smithery.ai/server/@berlinbra/alpha-vantage-mcp):
 
@@ -47,12 +61,38 @@ To install Alpha Vantage MCP Server for Claude Desktop automatically via [Smithe
 npx -y @smithery/cli install @berlinbra/alpha-vantage-mcp --client claude
 ```
 
-### Install packages
+<summary> <h3> Development/Unpublished Servers Configuration <h3> </summary>
+
+<details>
+
+```json
+{
+ "mcpServers": {
+  "alpha-vantage-mcp": {
+   "args": [
+    "--directory",
+    "/Users/{INSERT_USER}/YOUR/PATH/TO/alpha-vantage-mcp",
+    "run",
+    "alpha-vantage-mcp"
+   ],
+   "command": "uv",
+   "env": {
+    "ALPHA_VANTAGE_API_KEY": "<insert api key>"
+   }
+  }
+ }
+}
+```
+        
+</details>
+
+#### Install packages
+
 ```
 uv install -e .
 ```
 
-### Running
+#### Running
 
 After connecting Claude client with the MCP tool via json file and installing the packages, Claude should see the server's mcp tools:
 
