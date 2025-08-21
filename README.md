@@ -1,4 +1,5 @@
 # Alpha Vantage MCP Server
+[![Trust Score](https://archestra.ai/mcp-catalog/api/badge/quality/berlinbra/alpha-vantage-mcp)](https://archestra.ai/mcp-catalog/berlinbra__alpha-vantage-mcp)
 [![smithery badge](https://smithery.ai/badge/@berlinbra/alpha-vantage-mcp)](https://smithery.ai/server/@berlinbra/alpha-vantage-mcp)
 
 A Model Context Protocol (MCP) server that provides real-time access to financial market data through the free [Alpha Vantage API](https://www.alphavantage.co/documentation/). This server implements a standardized interface for retrieving stock quotes and company information.
