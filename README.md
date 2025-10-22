@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/berlinbra-alpha-vantage-mcp-badge.png)](https://mseep.ai/app/berlinbra-alpha-vantage-mcp)
+
 # Alpha Vantage MCP Server
 [![smithery badge](https://smithery.ai/badge/@berlinbra/alpha-vantage-mcp)](https://smithery.ai/server/@berlinbra/alpha-vantage-mcp)
 
