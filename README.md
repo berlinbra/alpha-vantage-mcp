@@ -112,6 +112,10 @@ with inspector
 * npx @modelcontextprotocol/inspector uv --directory /Users/{INSERT_USER}/YOUR/PATH/TO/alpha-vantage-mcp run src/alpha_vantage_mcp/server.py `
 ```
 
+## Hosted deployment
+
+A hosted deployment is available on [Fronteir AI](https://fronteir.ai/mcp/berlinbra-alpha-vantage-mcp).
+
 ## Available Tools
 
 The server implements twelve tools:
